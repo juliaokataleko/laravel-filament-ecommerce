@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignId("tax_id")->nullable()->constrained()->cascadeOnDelete();
 
             $table->string("name");
+            $table->string("image")->nullable();
             $table->string("slug")->unique();
             $table->string("sku")->unique();
             $table->longText("description")->nullable();
