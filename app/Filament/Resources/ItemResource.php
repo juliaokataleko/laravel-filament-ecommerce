@@ -36,7 +36,7 @@ use Illuminate\Support\Str;
 class ItemResource extends Resource
 {
     protected static ?string $model = Item::class;
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 0;
     protected static ?string $navigationIcon = 'heroicon-o-bolt';
     protected static ?string $navigationGroup = "Items e Inventário";
     protected static ?string $navigationLabel = "Items";
