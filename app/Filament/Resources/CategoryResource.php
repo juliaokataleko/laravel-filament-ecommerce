@@ -2,24 +2,24 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\BrandResource\Pages;
-use App\Filament\Resources\BrandResource\RelationManagers;
-use App\Models\Brand;
+use App\Filament\Resources\CategoryResource\Pages;
+use App\Filament\Resources\CategoryResource\RelationManagers;
+use App\Models\Category;
+use Filament\Actions\ActionGroup;
 use Filament\Forms;
-use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\Group;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\ActionGroup as ActionsActionGroup;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\ViewAction;
-use Filament\Tables\Columns\ColorColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -27,18 +27,18 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Str;
 
-class BrandResource extends Resource
+class CategoryResource extends Resource
 {
-    protected static ?string $model = Brand::class;
+    protected static ?string $model = Category::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-arrows-pointing-in';
-    protected static ?int $navigationSort = 1;
+    protected static ?string $navigationIcon = 'heroicon-o-tag';
+    protected static ?int $navigationSort = 4;
     protected static ?string $navigationGroup = "Items e Inventário";
-    protected static ?string $navigationLabel = "Marcas";
-    protected static ?string $recordTitleAttribute = "name";
+    protected static ?string $navigationLabel = "Categorias";
 
-    public static function getGloballySearchableAttributes(): array {
-        return ["name", "description", "slug"];
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ["name"];
     }
 
     public static function form(Form $form): Form
@@ -50,7 +50,7 @@ class BrandResource extends Resource
                         TextInput::make("name")
                             ->label("Nome")
                             ->live(onBlur: true)
-                            ->unique(Brand::class, 'name', ignoreRecord: true)
+                            ->unique(ignoreRecord: true)
                             ->required()
                             ->afterStateUpdated(function (string $operation, $state, Set $set) {
                                 if ($operation !== 'create') {
@@ -63,24 +63,21 @@ class BrandResource extends Resource
                             ->disabled()
                             ->dehydrated()
                             ->required()
-                            ->unique(Brand::class, 'slug', ignoreRecord: true),
-                        TextInput::make('url')->label('Url')
-                            ->unique(Brand::class, 'url', ignoreRecord: true)
-                            ->columnSpan('full'),
-                        MarkdownEditor::make('description')
+                            ->unique(ignoreRecord: true),
+                        MarkdownEditor::make("description")
+                            ->label("Descrição")
                             ->columnSpan('full')
-                            ->label('Descrição')
-                    ])->columns(2)
+                    ])->columns(2),
                 ]),
                 Group::make()->schema([
                     Section::make('Status')->schema([
-                        Toggle::make('is_visible')->label('Visibilidade')
-                            ->helperText('Ativar ou desativar a visibilidade')
-                    ]),
-                    Section::make('Cor')->schema([
-                        ColorPicker::make('primary_hex')->label('Cor')
+                        Toggle::make('is_visible')
+                            ->label('Visibilidade')
+                            ->helperText("Ativar ou desativar a visibilidade")
+                            ->default(true),
+                        Select::make('parent_id')->relationship('parent', 'name')->label("Parente")
                     ])
-                ]),
+                ])
             ]);
     }
 
@@ -88,21 +85,25 @@ class BrandResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('name')->label('Nome')->searchable()->sortable(),
-                TextColumn::make('slug')->label('Slug')->searchable()->sortable(),
-                TextColumn::make('url')->label('URL')->searchable()->sortable(),
-                ColorColumn::make('primary_hex')->label('Cor'),
-                IconColumn::make('is_visible')->boolean()
+                TextColumn::make('name')
                     ->sortable()
-                    ->toggleable()
-                    ->label("Visivel"),
-                TextColumn::make('updated_at')->date()->label('Data de atualização')
+                    ->label("Nome")
+                    ->searchable(),
+                TextColumn::make('parent.name')
+                    ->label("Parente")
+                    ->sortable()
+                    ->searchable(),
+                IconColumn::make('is_visible')
+                    ->label("Visiblidade")
+                    ->boolean()
+                    ->sortable(),
+                TextColumn::make('updated_at')
+                    ->date("d/m/Y")
+                    ->label("Data de atualização")
             ])
-            ->filters([
-                //
-            ])
+            ->filters([])
             ->actions([
-                ActionGroup::make([
+                ActionsActionGroup::make([
                     ViewAction::make(),
                     Tables\Actions\EditAction::make(),
                     DeleteAction::make()
@@ -125,9 +126,9 @@ class BrandResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListBrands::route('/'),
-            'create' => Pages\CreateBrand::route('/create'),
-            'edit' => Pages\EditBrand::route('/{record}/edit'),
+            'index' => Pages\ListCategories::route('/'),
+            'create' => Pages\CreateCategory::route('/create'),
+            'edit' => Pages\EditCategory::route('/{record}/edit'),
         ];
     }
 }

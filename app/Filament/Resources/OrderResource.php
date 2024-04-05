@@ -5,9 +5,11 @@ namespace App\Filament\Resources;
 use App\Enums\OrderStatusEnum;
 use App\Filament\Resources\OrderResource\Pages;
 use App\Filament\Resources\OrderResource\RelationManagers;
+use App\Models\Item;
 use App\Models\Order;
 use Filament\Forms;
 use Filament\Forms\Components\MarkdownEditor;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Wizard;
@@ -29,9 +31,13 @@ class OrderResource extends Resource
     protected static ?string $model = Order::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
-    protected static ?int $navigationSort = 2;
-    protected static ?string $navigationGroup = "Items e Inventário";
+    protected static ?int $navigationSort = 1;
+    protected static ?string $navigationGroup = "Pedidos e Vendas";
     protected static ?string $navigationLabel = "Pedidos";
+
+    public static function getNavigationBadge(): string {
+        return static::getModel()::where('status', 'processing')->count();
+    }
 
     public static function form(Form $form): Form
     {
@@ -41,7 +47,7 @@ class OrderResource extends Resource
                     Step::make('Order Details')
                         ->schema([
                             TextInput::make('number')
-                                ->default('OR-' . random_int(100000,99999999))
+                                ->default('OR-' . random_int(100000, 99999999))
                                 ->disabled()
                                 ->required()
                                 ->dehydrated()
@@ -55,12 +61,26 @@ class OrderResource extends Resource
                                 'processing' => OrderStatusEnum::PROCESSING->value,
                                 'completed' => OrderStatusEnum::COMPLETED->value,
                                 'declined' => OrderStatusEnum::DECLINED->value,
-                            ])->columnSpanFull(),
+                            ])->columnSpanFull()->required(),
                             MarkdownEditor::make('notes')->columnSpanFull()
                         ])->columns(2),
                     Step::make('Order Items')
                         ->schema([
-
+                            Repeater::make('items')->schema([
+                                Select::make('product_id')
+                                    ->label('Item')
+                                    ->options(Item::query()->pluck('name', 'id')),
+                                TextInput::make('quantity')
+                                    ->label('Quantidade')
+                                    ->numeric()
+                                    ->default(1)
+                                    ->required(),
+                                TextInput::make('unit_price')
+                                    ->label('Preço Unitário')
+                                    ->numeric()
+                                    ->disabled()
+                                    ->required()
+                            ])->columns(3)
                         ]),
                 ])->columnSpanFull()
             ]);

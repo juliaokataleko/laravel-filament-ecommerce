@@ -30,6 +30,7 @@ class AdminPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Blue,
             ])
+            ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
             ->font(family:"Poppins")
             ->favicon("assets/images/logo.png")
             ->darkMode(false)

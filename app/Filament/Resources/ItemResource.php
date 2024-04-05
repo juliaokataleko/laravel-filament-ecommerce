@@ -29,6 +29,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use League\CommonMark\Input\MarkdownInput;
 use Illuminate\Support\Str;
@@ -38,8 +39,31 @@ class ItemResource extends Resource
     protected static ?string $model = Item::class;
     protected static ?int $navigationSort = 0;
     protected static ?string $navigationIcon = 'heroicon-o-bolt';
+    protected static ?string $activeNavigationIcon = 'heroicon-o-tag';
     protected static ?string $navigationGroup = "Items e Inventário";
     protected static ?string $navigationLabel = "Items";
+
+    protected static int $globalSearchResultsLimit = 20;
+
+    public static function getNavigationBadge(): string {
+        return static::getModel()::count();
+    }
+
+    // global search
+    public static function getGloballySearchableAttributes(): array {
+        return ["name", "description"];
+    }
+
+    public static function getGlobalSearchResultDetails(Model $record): array {
+        return [
+            "Nome: " => $record->name,
+            "Marca: " => $record->brand->name,
+        ];
+    }
+
+    public static function getGlobalSearchEloquentQuery(): Builder {
+        return parent::getGlobalSearchEloquentQuery()->with(['brand']);
+    }
 
     public static function form(Form $form): Form
     {
